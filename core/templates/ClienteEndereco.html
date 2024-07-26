@@ -1,0 +1,118 @@
+{% extends "Base.html" %}
+{% load static %}
+{% block content %}
+<main class="row ">
+    <div class="card mt-5">
+        <div class="card-header" style="background-color: #FFF !important; border-bottom: none !important;">
+            <div class="card-header justify-content-center align-items-center" style="background-color: #FFF !important; border-bottom: none !important;">
+                <h5 class="card-title m-0">Cliente</h5>
+                <p class="mt-2">Nome: {{ cliente.nome }}</p>
+                <p>Email: {{ cliente.email }}</p>
+                <p>CPF: {{ cliente.cpf_formatado }}</p>
+                {% with enderecos|first as endereco %}
+                    {% if endereco %}
+                        <h5>Endereço Printcipal:</h5><p><strong>{{ endereco.endereco.titulo}} - {{ endereco.endereco.localidade }}, {{ endereco.endereco.bairro }}, {{ endereco.endereco.logradouro }} -  {{ endereco.endereco.cep }}</strong></p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div> 
+
+
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center flex-lg-nowrap flex-wrap gap-2" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h5 class="card-title m-0 ">Endereços do Cliente: {{ cliente.nome }}</h5> 
+            <div class="d-flex gap-2">
+                {% include "modais/Enderecos/adicionarEndereco.html" %}
+            </div>
+        </div>
+        <div class="card-body">
+            <ul class="p-0">
+                {% for enderco in enderecos %}
+                    {% include "modais/Enderecos/alterarEndereco.html" with participante=enderco %}
+                    {% include "modais/Enderecos/deletarEndereco.html" with participante=enderco %}
+                    <li class="border-bottom pb-3 list-unstyled d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="d-flex align-items-end gap-2">
+                                <div>
+                                    <span><small class="fw-bold">Titulo</small></span>
+                                    <p class="m-0">{{enderco.endereco.titulo}}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end gap-lg-4 flex-lg-nowrap flex-wrap">
+                                <div>
+                                    <small class="fw-bold">CEP</small>
+                                    <p class="m-0">{{enderco.endereco.cep}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Logradouro</small>
+                                    <p class="m-0">{{enderco.endereco.logradouro}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Bairro</small>
+                                    <p class="m-0">{{enderco.endereco.bairro}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Localidade</small>
+                                    <p class="m-0">{{enderco.endereco.localidade}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Número</small>
+                                    <p class="m-0">{{enderco.endereco.numero}}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="d-flex align-items-end gap-4">
+                                <a class="update-link" data-bs-toggle="modal" data-bs-target="#modalAlterarEndereco{{enderco.endereco.pk}}"><i class="fas fa-edit fa-2x"></i></a>
+                                <a class="delete-link" data-bs-toggle="modal" data-bs-target="#modalDeleteEndereco{{enderco.endereco.pk}}"><i class="fas fa-trash-alt fa-2x"></i></a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div> 
+</main>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/jquery.mask.min.js' %}"></script>
+    <script>
+        $(function(){
+            $('#id_cep').mask('00000-000');
+            $('#createnewadress').on('submit', function(){
+                $('#id_cep').unmask();
+            });
+
+            $("#id_cep").blur(function() {
+                // Nova variável "cep" somente com dígitos.
+                var cep = $(this).val().replace(/\D/g, '');
+                console.log(cep)
+                // Verifica se campo cep possui valor informado.
+                if (cep != "") {
+                    // Expressão regular para validar o CEP.
+                    var validacep = /^[0-9]{8}$/;
+
+                    // Valida o formato do CEP.
+                    if(validacep.test(cep)) {
+                        // Consulta o webservice viacep.com.br/
+                        $.getJSON("https://viacep.com.br/ws/"+ cep +"/json/", function(dados) {
+                            if (!("erro" in dados)) {
+                                // Atualiza os campos com os valores da consulta.
+                                $("#id_logradouro").val(dados.logradouro);
+                                $("#id_bairro").val(dados.bairro);
+                                $("#id_localidade").val(dados.localidade);
+                            } else {
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    } else {
+                        alert("Formato de CEP inválido.");
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

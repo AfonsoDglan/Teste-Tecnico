@@ -1,0 +1,42 @@
+{% extends "Base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card mb-4 text-center">
+                <div class="card-header">Clientes</div>
+                <div class="card-body">
+                    <div class="card-icon mb-4">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <a href="{% url 'clientes' %}" class="btn btn-custom">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4 text-center">
+                <div class="card-header">Produtos</div>
+                <div class="card-body">
+                    <div class="card-icon mb-4">
+                        <i class="fas fa-box fa-2x"></i>
+                    </div>
+                    <a href="{% url 'produtos' %}" class="btn btn-custom">Acessar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4 text-center">
+                <div class="card-header">Pedidos</div>
+                <div class="card-body">
+                    <div class="card-icon mb-4 ">
+                        <i class="fas fa-receipt fa-2x"></i>
+                    </div>
+                    <a href="{% url 'pedido' %}" class="btn btn-custom">Acessar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

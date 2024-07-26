@@ -1,0 +1,71 @@
+{% extends "Base.html" %}
+{% load static %}
+{% block content %}
+<main class="row ">
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h5 class="card-title m-0">Pesquisa</h5>
+        </div>
+        <form method="GET" class="card-body ">
+            <div class="w-100">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label for="regiaochoice" class="mb-2">Código ou Descrição</label>
+                        <input type="text" name="ProdutoCodDesc" maxlength="250" class="form-control w-100" id="id_nome" placeholder="Pesquise pelo nome ou cpf" value="{{ request.GET.ClienteNomeCPF }}">
+                    </div>
+                </div>
+                <div class="mt-2 d-flex justify-content-end">
+                    <button style="height: 47.5px;" class="btn btn-primary" type="submit">Pesquisar</button>
+                </div>
+            </div>
+            <p class="my-0 mt-2 text-end">Resultado total: {{qdtResultados}}</p>
+        </form>
+    </div> 
+
+
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center flex-lg-nowrap flex-wrap gap-2" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h5 class="card-title m-0 ">Produtos</h5> 
+            <div class="d-flex gap-2">
+                {% include "modais/Produtos/adicionarProduto.html" %}
+            </div>
+        </div>
+        <div class="card-body">
+            <ul class="p-0">
+                {% for produto in produtos %}
+                    {% include "modais/Produtos/alterarProduto.html" with participante=produto %}
+                    {% include "modais/Produtos/deletarProduto.html" with participante=produto %}
+                    <li class="border-bottom pb-3 list-unstyled d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="d-flex align-items-end gap-2">
+                                <div>
+                                    <span><small class="fw-bold">Descrição</small></span>
+                                    <p class="m-0">{{produto.descricao}}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end gap-lg-4 flex-lg-nowrap flex-wrap">
+                                <div>
+                                    <small class="fw-bold">Valor</small>
+                                    <p class="m-0">{{produto.valor_formatado}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Código</small>
+                                    <p class="m-0">{{produto.codigo}}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="d-flex align-items-end gap-4">
+                                <a class="update-link" data-bs-toggle="modal" data-bs-target="#modalAlterarProduto{{produto.pk}}"><i class="fas fa-edit fa-2x"></i></a>
+                                <a class="delete-link" data-bs-toggle="modal" data-bs-target="#modalDeleteProduto{{produto.pk}}"><i class="fas fa-trash-alt fa-2x"></i></a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            
+        </div>
+    </div> 
+</main>
+{% endblock %}

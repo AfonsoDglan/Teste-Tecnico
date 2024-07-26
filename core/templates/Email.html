@@ -1,0 +1,21 @@
+<!-- email_resumo_pedido.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resumo do Pedido</title>
+</head>
+<body>
+    <h1>Resumo do Pedido #{{ pedido.codigo }}</h1>
+    <p>Data: {{ pedido.data }}</p>
+    <p>Cliente: {{ pedido.cliente.nome }}</p>
+    
+    <h2>Produtos:</h2>
+    <ul>
+        {% for produto in produtos %}
+            <li>{{ produto.descricao }} - Valor: R$ {{ produto.valor }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Total: R$ {{ total }}</h3>
+</body>
+</html>

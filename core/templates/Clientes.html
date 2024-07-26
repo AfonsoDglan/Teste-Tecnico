@@ -1,0 +1,84 @@
+{% extends "Base.html" %}
+{% load static %}
+{% block content %}
+<main class="row ">
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h5 class="card-title m-0">Cliente</h5>
+        </div>
+        <form method="GET" class="card-body ">
+            <div class="w-100">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label for="regiaochoice" class="mb-2">Nome ou CPF</label>
+                        <input type="text" name="ClienteNomeCPF" maxlength="250" class="form-control w-100" id="id_nome" placeholder="Pesquise pelo nome ou cpf" value="{{ request.GET.ClienteNomeCPF }}">
+                    </div>
+                </div>
+                <div class="mt-2 d-flex justify-content-end">
+                    <button style="height: 47.5px;" class="btn btn-primary" type="submit">Pesquisar</button>
+                </div>
+            </div>
+            <p class="my-0 mt-2 text-end">Resultado total: {{qdtResultados}}</p>
+        </form>
+    </div> 
+
+
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-between align-items-center flex-lg-nowrap flex-wrap gap-2" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h5 class="card-title m-0 ">Clientes</h5> 
+            <div class="d-flex gap-2">
+                {% include "modais/Clientes/adicionarCliente.html" %}
+            </div>
+        </div>
+        <div class="card-body">
+            <ul class="p-0">
+                {% for cliente in clientes %}
+                    {% include "modais/Clientes/alterarCliente.html" with participante=cliente %}
+                    {% include "modais/Clientes/deletarCliente.html" with participante=cliente %}
+                    <li class="border-bottom pb-3 list-unstyled d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="d-flex align-items-end gap-2">
+                                <div>
+                                    <span><small class="fw-bold">Nome</small></span>
+                                    <p class="m-0">{{cliente.nome}}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-end gap-lg-4 flex-lg-nowrap flex-wrap">
+                                <div>
+                                    <small class="fw-bold">CPF</small>
+                                    <p class="m-0">{{cliente.CpfParcial}}</p>
+                                </div>
+                                <div>
+                                    <small class="fw-bold">Email</small>
+                                    <p class="m-0">{{cliente.email}}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="d-flex align-items-end gap-4">
+                                <a href="{% url 'cliente-detail' cliente.pk %}" class="details-link"><i class="fas fa-info-circle fa-2x"></i></a>
+                                <a class="update-link" data-bs-toggle="modal" data-bs-target="#modalAlterarDadosCliente{{cliente.pk}}"><i class="fas fa-edit fa-2x"></i></a>
+                                <a class="delete-link" data-bs-toggle="modal" data-bs-target="#modalDeleteCliente{{cliente.pk}}"><i class="fas fa-trash-alt fa-2x"></i></a>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            
+        </div>
+    </div> 
+</main>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/jquery.mask.min.js' %}"></script>
+    <script src="{% static 'js/mascara.js' %}"></script>
+    <script>
+        $(function(){
+            $('#formUpdateCliente').on('submit', function(){
+                $('.mask-cpf').unmask();
+            });
+        });
+    </script>
+{% endblock %}

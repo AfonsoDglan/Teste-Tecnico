@@ -1,0 +1,181 @@
+{% extends "Base.html" %}
+{% load static %}
+{% block content %}
+<main class="row ">
+    <div class="card mt-5">
+        <div class="card-header d-flex justify-content-center align-items-center flex-lg-nowrap flex-wrap gap-2" style="background-color: #FFF !important; border-bottom: none !important;">
+            <h1 class="card-title m-0 ">Pedido</h1> 
+        </div>
+        <div class="card-body">
+            <form method="post" id="formCreateCliente" action=".">
+                {% csrf_token %}
+                <div class="form-group mb-4">
+                    <label for="id_cliente">Cliente</label>
+                    <select name="cliente" id="id_cliente">
+                        <option value="" selected disabled>Selecione um cliente</option>
+                      {% for cliente in clientes %}
+                          <option value="{{ cliente.pk }}">{{ cliente.nome }} - {{cliente.cpf}}</option>
+                      {% endfor %}
+                    </select>
+                    <div id="passwordHelpBlock" class="form-text"></div>
+                </div>
+                <div id="clienteData" style="display: none;">
+                    <div class="form-group mb-4">
+                        <label for="id_nome">Nome</label>
+                        <input type="text" id="id_nome" class="form-control" readonly>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="id_cpf">CPF</label>
+                        <input type="text" id="id_cpf" class="form-control" readonly>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="id_email">Email</label>
+                        <input type="text" id="id_email" class="form-control" readonly>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="id_endereco">Endereço</label>
+                        <select id="id_endereco" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="form-group mb-4">
+                    <label for="id_produto">Produto</label>
+                    <select id="id_produto" class="form-control">
+                        <option value="" selected disabled>Selecione um produto</option>
+                        {% for produto in produtos %}
+                            <option value="{{ produto.pk }}" data-preco="{{ produto.valor }}">
+                                {{ produto.descricao }} - R$ {{ produto.valor }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="button" id="add_produto" class="btn btn-primary">Adicionar Produto</button>
+                    </div>
+                </div>
+            
+                <div id="produtosAdicionados">
+                    <h3>Produtos Adicionados</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="col-7">Descrição</th>
+                                <th class="col-3">Valor</th>
+                                <th class="col-2 text-end">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="produtosTabela">
+                            <!-- Produtos adicionados serão listados aqui -->
+                        </tbody>
+                    </table>
+                    <h4>Total: <span id="totalPedido">R$ 0.00</span></h4>
+                </div>
+                <input type="hidden" name="produtos_adicionados" id="produtos_adicionados">
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-primary">Finalizar Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div> 
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        const produtosAdicionados = [];
+
+        const selectElement = new Choices('#id_cliente', {
+            searchEnabled: true,
+            itemSelectText: 'Clique para selecionar',
+            noChoicesText: 'Sem opções para escolha',
+            placeholder: true,
+            placeholderValue: 'Selecione um produto'
+        });
+
+        const selectElementProduto = new Choices('#id_produto', {
+            searchEnabled: true,
+            itemSelectText: 'Clique para selecionar',
+            noChoicesText: 'Sem opções para escolha',
+            placeholder: true,
+            placeholderValue: 'Selecione um produto'
+        });
+
+        $('#id_cliente').change(function() {
+            const clienteId = $(this).val();
+            if (clienteId) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'search_cliente' %}",
+                    data: {
+                        'cliente_id': clienteId,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(data) {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            $('#clienteData').show();
+                            $('#id_nome').val(data.nome);
+                            $('#id_cpf').val(data.cpf);
+                            $('#id_email').val(data.email);
+
+                            const enderecoSelect = $('#id_endereco');
+                            enderecoSelect.empty();
+                            data.enderecos.forEach(function(endereco) {
+                                enderecoSelect.append(
+                                    `<option value="${endereco.id}" ${endereco.default ? 'selected' : ''}>
+                                        ${endereco.logradouro}, ${endereco.numero} - ${endereco.bairro}, ${endereco.localidade} - ${endereco.cep}
+                                    </option>`
+                                );
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Adicionar produto ao pedido
+        $('#add_produto').click(function() {
+            const produtoId = $('#id_produto').val();
+            const preco = parseFloat($('#id_produto option:selected').text().split(' - ')[1].replace('R$', '').replace(',','.'));
+            const descricao = $('#id_produto option:selected').text().split(' - ')[0];
+            if (produtoId) {
+                produtosAdicionados.push({
+                    produtoId: produtoId,
+                    descricao: descricao,
+                    valor: preco
+                });
+
+                const tabela = $('#produtosTabela');
+                tabela.append(
+                    `<tr>
+                        <td>${descricao}</td>
+                        <td>R$ ${preco.toFixed(2)}</td>
+                        <td class="text-end"><button type="button" class="btn btn-danger btn-sm remove-produto" data-produto-id="${produtoId}">Remover</button></td>
+                    </tr>`
+                );
+
+                atualizarTotal();
+            } else {
+                alert("Selecione um produto");
+            }
+        });
+
+        // Remover produto da lista
+        $('#produtosTabela').on('click', '.remove-produto', function() {
+            const produtoId = $(this).data('produto-id');
+            $(this).closest('tr').remove();
+            produtosAdicionados = produtosAdicionados.filter(produto => produto.produtoId !== produtoId);
+            atualizarTotal();
+        });
+
+        // Atualizar total
+        function atualizarTotal() {
+            const total = produtosAdicionados.reduce((acc, produto) => acc + produto.valor, 0);
+            $('#totalPedido').text(`R$ ${total.toFixed(2)}`);
+        }
+        $('#formCreateCliente').submit(function() {
+        $('#produtos_adicionados').val(JSON.stringify(produtosAdicionados));
+    });
+    });
+</script>
+{% endblock %}
